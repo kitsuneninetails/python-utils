@@ -1,28 +1,10 @@
-import os
+import os_client_config
 import subprocess
-from python_utils.net import curl_utils
 from python_utils.openstack import utils
 
 
 def create_neutron_client():
-    import neutronclient.neutron.client
-
-    ks_ref = curl_utils.curl_get(os.environ.get('OS_AUTH_URL').rstrip('/'))
-    href = ks_ref['version']['links'][0]['href']
-
-    base_client_args = {
-        'auth_strategy': 'keystone',
-        'auth_url': href.rstrip('/') + "/auth",
-        'username': os.environ.get('OS_USERNAME'),
-        'password': os.environ.get('OS_PASSWORD'),
-        'tenant_name': os.environ.get('OS_TENANT_NAME', 'admin'),
-        'endpoint_url': 'http://localhost:9696'}
-
-    client = neutronclient.neutron.client.Client(
-        '2.0',
-        **base_client_args)
-    """ :type: neutronclient.v2_0.client.Client"""
-    return client
+    return os_client_config.make_client("network")
 
 
 def make_gateway_ip(real_ip):

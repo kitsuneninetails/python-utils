@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 from python_utils.common import exceptions
 from python_utils.openstack import ipnetns_vm
@@ -24,7 +25,7 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.name:
+    if not args.vm_name:
         raise exceptions.ArgMismatchException(
             "Must specify a vm name to add or delete.")
 
@@ -32,9 +33,9 @@ def main():
         if not args.net:
             raise exceptions.ArgMismatchException(
                 "Must specify net name or ID to create a VM.")
-        ipnetns_vm.create_vm(args.name, args.net, args.ip)
+        ipnetns_vm.create_vm(args.vm_name, args.net, args.ip)
     elif args.delete:
-        ipnetns_vm.delete_vm(args.name, args.port_id)
+        ipnetns_vm.delete_vm(args.vm_name, args.port_id)
     else:
         raise exceptions.ArgMismatchException(
             "Must specify action to either add (-a) or delete (-d) a VM.")

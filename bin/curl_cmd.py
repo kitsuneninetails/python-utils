@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 from python_utils.net import curl_utils
 
