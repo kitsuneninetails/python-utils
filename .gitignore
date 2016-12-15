@@ -1,0 +1,6 @@
+**/*.pyc
+.idea/**
+logs/
+*.iml
+.tox/
+python-utils.egg-info/**
