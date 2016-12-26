@@ -1,17 +1,3 @@
-# Copyright 2015 Midokura SARL
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import glob
 import os
 import pwd
@@ -130,9 +116,7 @@ class LinuxCLI(object):
             self.env_map.pop(name)
 
     def cmd(self, cmd_list, timeout=None, blocking=True, verify=False,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE):
+            stdin=None, stdout=None, stderr=None):
         """
         Execute piped commands on the system without a shell.  The exact
         command will be transformed based on the timeout parameter and whether
@@ -149,17 +133,23 @@ class LinuxCLI(object):
         :return: zephyr.common.cli.CommandStatus
         """
 
-        commands = [cmd_list] if not isinstance(cmd_list, list) else cmd_list
+        isbaselist = isinstance(cmd_list, list)
+        isinnerlist = (isbaselist and
+                       len(cmd_list) == 0 or isinstance(cmd_list[0], list))
+        commands = (
+            [[cmd_list]] if not isbaselist
+            else [cmd_list] if not isinnerlist
+            else cmd_list)
 
         ret = CommandStatus()
         if len(commands) == 0:
             return ret
 
-        cmd_array = (
-            [(['timeout'] if timeout else [])] +
+        cmd_array = [
+            (['timeout'] if timeout else []) +
             self.priv_prefix() +
             self.cmd_prefix() +
-            commands[0])
+            commands[0]]
 
         for cmd in commands[1:]:
             cmd_array.append(self.priv_prefix() + self.cmd_prefix() + cmd)
@@ -181,12 +171,15 @@ class LinuxCLI(object):
         # Second -> Second to last (if more than one), chain the
         # stdout -> next stdin The last process (whether one or many) needs
         # to have the user-set stdout, stderr
+        b_stdin = stdin if stdin else subprocess.PIPE
+        b_stdout = stdout if stdout else subprocess.PIPE
+        b_stderr = stderr if stderr else subprocess.PIPE
         for i in range(0, len(cmd_array)):
             p = subprocess.Popen(
                 cmd_array[i], shell=False,
-                stdin=stdin if i == 0 else processes[i - 1].stdout,
-                stdout=stdout if i == len(cmd_array) - 1 else subprocess.PIPE,
-                stderr=stderr if i == len(cmd_array) - 1 else subprocess.PIPE,
+                stdin=b_stdin if i == 0 else processes[i - 1].stdout,
+                stdout=b_stdout if i == len(cmd_array) - 1 else subprocess.PIPE,
+                stderr=b_stderr if i == len(cmd_array) - 1 else subprocess.PIPE,
                 env=self.env_map,
                 preexec_fn=os.setsid)
             processes.append(p)
@@ -199,18 +192,18 @@ class LinuxCLI(object):
             return CommandStatus(process=p, command=cmd_str,
                                  process_array=processes)
 
-        stdout, stderr = p.communicate()
+        pstdout, pstderr = p.communicate()
 
         # 'timeout' returns 124 on timeout
         if p.returncode == 124 and timeout is not None:
             raise SubprocessTimeoutException('Process timed out: ' + cmd_str)
 
         out = ''
-        for line in stdout:
+        for line in pstdout if pstdout else '':
             out += line
 
         err = ''
-        for line in stderr:
+        for line in pstderr if pstderr else '':
             err += line
 
         if verify and p.returncode != 0:
@@ -250,7 +243,10 @@ class LinuxCLI(object):
 
     def grep_count(self, cmd_line, grep):
         grep_cmd = ['grep', '-c', grep]
-        return int(self.cmd([cmd_line, grep_cmd]).stdout)
+        return int(self.cmd(
+            [cmd_line.split(' ') if not isinstance(cmd_line, list)
+             else cmd_line,
+             grep_cmd]).stdout)
 
     def mkdir(self, dir_name):
         return self.cmd(['mkdir', '-p', dir_name]).stdout

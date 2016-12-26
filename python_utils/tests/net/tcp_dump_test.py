@@ -1,22 +1,15 @@
-# Copyright 2016 Midokura SARL
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import unittest
-from zephyr.common import pcap
-from zephyr.common.tcp_dump import *
-from zephyr.common.tcp_sender import TCPSender
-from zephyr.common.utils import run_unit_test
+from python_utils.net import pcap
+from python_utils.net.tcp_dump import *
+from python_utils.net.tcp_sender import TCPSender
+from python_utils.tests.utils.test_utils import run_unit_test
+
+
+LOOPBACK = LinuxCLI().cmd(
+    [['ip', 'l'],
+     ['grep', 'LOOPBACK'],
+     ['cut', '-f', '2', '-d', ' '],
+     ['cut', '-f', '1', '-d', ':']]).stdout
 
 
 def packet_callback(packet, file_name):
@@ -32,9 +25,7 @@ def packet_callback(packet, file_name):
 def send_packet():
     time.sleep(5)
     tcps = TCPSender()
-    out = LinuxCLI().cmd(
-        'ip l | grep "LOOPBACK" | cut -f 2 -d " "| cut -f 1 -d ":"').stdout
-    lo_iface = out.split()[0].rstrip()
+    lo_iface = LOOPBACK.split()[0].rstrip()
     tcps.start_send(interface=lo_iface, packet_type='tcp', count=3,
                     source_ip='127.0.0.1', dest_ip='127.0.0.1',
                     dest_port=6055, source_port=6015)
@@ -63,9 +54,7 @@ class TCPDumpTest(unittest.TestCase):
     def test_read_packet_buffered(self):
         tcpd = TCPDump()
 
-        out = LinuxCLI().cmd(
-            'ip l | grep "LOOPBACK" | cut -f 2 -d " "| cut -f 1 -d ":"').stdout
-        lo_iface = out.split()[0].rstrip()
+        lo_iface = LOOPBACK.split()[0].rstrip()
 
         p = multiprocessing.Process(target=send_packet)
         p.start()
@@ -95,10 +84,7 @@ class TCPDumpTest(unittest.TestCase):
         tcps = TCPSender()
         try:
 
-            out = LinuxCLI().cmd(
-                'ip l | grep "LOOPBACK" | cut -f 2 -d " "| cut -f 1 -d ":"')\
-                .stdout
-            lo_iface = out.split()[0].rstrip()
+            lo_iface = LOOPBACK.split()[0].rstrip()
             tcpd.start_capture(interface=lo_iface, count=1)
             tcps.start_send(interface=lo_iface, packet_type='tcp', count=1,
                             source_ip='127.0.0.1', dest_ip='127.0.0.1',
@@ -118,10 +104,7 @@ class TCPDumpTest(unittest.TestCase):
         tcps = TCPSender()
         try:
 
-            out = LinuxCLI().cmd(
-                'ip l | grep "LOOPBACK" | cut -f 2 -d " "| cut -f 1 -d ":"')\
-                .stdout
-            lo_iface = out.split()[0].rstrip()
+            lo_iface = LOOPBACK.split()[0].rstrip()
             tcpd.start_capture(
                 interface=lo_iface,
                 pcap_filter=pcap.And(
@@ -148,10 +131,7 @@ class TCPDumpTest(unittest.TestCase):
         tcpd = TCPDump()
         tcps = TCPSender()
         try:
-            out = LinuxCLI().cmd(
-                'ip l | grep "LOOPBACK" | cut -f 2 -d " "| cut -f 1 -d ":"')\
-                .stdout
-            iface = out.split()[0].rstrip()
+            iface = LOOPBACK.split()[0].rstrip()
 
             tcpd.start_capture(
                 timeout=10, interface=iface, count=1,
@@ -183,10 +163,7 @@ class TCPDumpTest(unittest.TestCase):
     def test_timeout_blocking(self):
         tcpd = TCPDump()
 
-        out = LinuxCLI().cmd(
-            'ip l | grep "LOOPBACK" | cut -f 2 -d " "| cut -f 1 -d ":"')\
-            .stdout
-        lo_iface = out.split()[0].rstrip()
+        lo_iface = LOOPBACK.split()[0].rstrip()
 
         try:
             tcpd.start_capture(
@@ -197,7 +174,7 @@ class TCPDumpTest(unittest.TestCase):
                      pcap.Port(6015, proto='tcp', source=True),
                      pcap.Port(6055, proto='tcp', dest=True)]),
                 blocking=True, timeout=3)
-        except SubprocessTimeoutException:
+        except exceptions.SubprocessTimeoutException:
             pass
         else:
             self.assertTrue(
@@ -212,10 +189,7 @@ class TCPDumpTest(unittest.TestCase):
         tcps = TCPSender()
 
         try:
-            out = LinuxCLI().cmd(
-                'ip l | grep "LOOPBACK" | cut -f 2 -d " "| cut -f 1 -d ":"')\
-                .stdout
-            lo_iface = out.split()[0].rstrip()
+            lo_iface = LOOPBACK.split()[0].rstrip()
 
             LinuxCLI().rm('tmp.file')
 
@@ -252,10 +226,7 @@ class TCPDumpTest(unittest.TestCase):
         tcps = TCPSender()
 
         try:
-            out = LinuxCLI().cmd(
-                'ip l | grep "LOOPBACK" | cut -f 2 -d " "| cut -f 1 -d ":"')\
-                .stdout
-            lo_iface = out.split()[0].rstrip()
+            lo_iface = LOOPBACK.split()[0].rstrip()
 
             tcpd.start_capture(
                 interface=lo_iface, count=0,
@@ -274,7 +245,7 @@ class TCPDumpTest(unittest.TestCase):
             ret = tcpd.wait_for_packets(count=1, timeout=3)
             self.assertEqual(1, len(ret))
 
-            proc = tcpd.stop_capture()
+            tcpd.stop_capture()
 
             ret = tcpd.wait_for_packets(count=1, timeout=3)
             self.assertEqual(1, len(ret))

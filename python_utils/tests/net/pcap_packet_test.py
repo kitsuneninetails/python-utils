@@ -1,20 +1,7 @@
-# Copyright 2016 Midokura SARL
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import unittest
-from zephyr.common import pcap_packet
-from zephyr.common.utils import run_unit_test
+from python_utils.common import exceptions
+from python_utils.net import pcap_packet
+from python_utils.tests.utils.test_utils import run_unit_test
 
 
 class PCAPPacketTest(unittest.TestCase):
@@ -591,7 +578,7 @@ class PCAPPacketTest(unittest.TestCase):
 
         packet = pcap_packet.PCAPPacket(full_eii_packet_data, '13:00')
         self.assertRaises(
-            pcap_packet.PacketParsingException, packet.parse)
+            exceptions.PacketParsingException, packet.parse)
 
         emap = packet.extra_data
 
@@ -611,7 +598,7 @@ class PCAPPacketTest(unittest.TestCase):
 
         packet = pcap_packet.PCAPPacket(full_eii_packet_data, '13:00')
         self.assertRaises(
-            pcap_packet.PacketParsingException,
+            exceptions.PacketParsingException,
             packet.parse,
             [pcap_packet.PCAPSLL])
 
@@ -653,7 +640,7 @@ class PCAPPacketTest(unittest.TestCase):
 
         packet = pcap_packet.PCAPPacket(full_eii_packet_data, '13:00')
         self.assertRaises(
-            pcap_packet.PacketParsingException,
+            exceptions.PacketParsingException,
             packet.parse,
             [pcap_packet.PCAPSLL])
 
@@ -694,7 +681,7 @@ class PCAPPacketTest(unittest.TestCase):
 
         packet = pcap_packet.PCAPPacket(full_eii_packet_data, '13:00')
         self.assertRaises(
-            pcap_packet.PacketParsingException,
+            exceptions.PacketParsingException,
             packet.parse,
             [pcap_packet.PCAPSLL])
 
