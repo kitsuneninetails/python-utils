@@ -1,5 +1,5 @@
 import unittest
-from python_utils.net import pcap
+from python_utils.net import pcap_rules
 from python_utils.net.tcp_dump import *
 from python_utils.net.tcp_sender import TCPSender
 from python_utils.tests.utils.test_utils import run_unit_test
@@ -61,12 +61,12 @@ class TCPDumpTest(unittest.TestCase):
         ret = tcpd.read_packet(
             interface=lo_iface,
             count=3,
-            pcap_filter=pcap.And(
+            pcap_filter=pcap_rules.And(
                 [
-                    pcap.Host('localhost', proto='ip',
-                              source=True, dest=True),
-                    pcap.Port(6015, proto='tcp', source=True),
-                    pcap.Port(6055, proto='tcp', dest=True)
+                    pcap_rules.Host('localhost', proto='ip',
+                                    source=True, dest=True),
+                    pcap_rules.Port(6015, proto='tcp', source=True),
+                    pcap_rules.Port(6055, proto='tcp', dest=True)
                 ]
             ),
             save_dump_file=True, save_dump_filename='tcp.out')
@@ -107,9 +107,9 @@ class TCPDumpTest(unittest.TestCase):
             lo_iface = LOOPBACK.split()[0].rstrip()
             tcpd.start_capture(
                 interface=lo_iface,
-                pcap_filter=pcap.And(
-                    [pcap.Port(6015, proto='tcp', source=True),
-                     pcap.Port(6055, proto='tcp', dest=True)]))
+                pcap_filter=pcap_rules.And(
+                    [pcap_rules.Port(6015, proto='tcp', source=True),
+                     pcap_rules.Port(6055, proto='tcp', dest=True)]))
 
             tcps.start_send(interface=lo_iface, packet_type='tcp', count=10,
                             source_ip='127.0.0.1', dest_ip='127.0.0.1',
@@ -135,19 +135,19 @@ class TCPDumpTest(unittest.TestCase):
 
             tcpd.start_capture(
                 timeout=10, interface=iface, count=1,
-                pcap_filter=pcap.Or(
+                pcap_filter=pcap_rules.Or(
                     [
-                        pcap.And(
-                            [pcap.Host('localhost', proto='ip',
-                                       source=True, dest=True),
-                             pcap.Port(6015, proto='tcp', source=True),
-                             pcap.Port(6055, proto='tcp', dest=True),
-                             pcap.LessThanEqual('len', 1500)]),
-                        pcap.And(
-                            [pcap.Port(80, proto='tcp', dest=True),
-                             pcap.PortRange(8000, 8500,
-                                            proto='tcp', source=True),
-                             pcap.LessThanEqual('len', 1500)]),
+                        pcap_rules.And(
+                            [pcap_rules.Host('localhost', proto='ip',
+                                             source=True, dest=True),
+                             pcap_rules.Port(6015, proto='tcp', source=True),
+                             pcap_rules.Port(6055, proto='tcp', dest=True),
+                             pcap_rules.LessThanEqual('len', 1500)]),
+                        pcap_rules.And(
+                            [pcap_rules.Port(80, proto='tcp', dest=True),
+                             pcap_rules.PortRange(8000, 8500,
+                                                  proto='tcp', source=True),
+                             pcap_rules.LessThanEqual('len', 1500)]),
                     ]
                 ))
 
@@ -168,11 +168,11 @@ class TCPDumpTest(unittest.TestCase):
         try:
             tcpd.start_capture(
                 interface=lo_iface, count=1,
-                pcap_filter=pcap.And(
-                    [pcap.Host('localhost', proto='ip',
-                               source=True, dest=True),
-                     pcap.Port(6015, proto='tcp', source=True),
-                     pcap.Port(6055, proto='tcp', dest=True)]),
+                pcap_filter=pcap_rules.And(
+                    [pcap_rules.Host('localhost', proto='ip',
+                                     source=True, dest=True),
+                     pcap_rules.Port(6015, proto='tcp', source=True),
+                     pcap_rules.Port(6055, proto='tcp', dest=True)]),
                 blocking=True, timeout=3)
         except exceptions.SubprocessTimeoutException:
             pass
@@ -195,11 +195,11 @@ class TCPDumpTest(unittest.TestCase):
 
             tcpd.start_capture(
                 interface=lo_iface, count=3,
-                pcap_filter=pcap.And(
-                    [pcap.Host('localhost', proto='ip',
-                               source=True, dest=True),
-                     pcap.Port(6015, proto='tcp', source=True),
-                     pcap.Port(6055, proto='tcp', dest=True)]),
+                pcap_filter=pcap_rules.And(
+                    [pcap_rules.Host('localhost', proto='ip',
+                                     source=True, dest=True),
+                     pcap_rules.Port(6015, proto='tcp', source=True),
+                     pcap_rules.Port(6055, proto='tcp', dest=True)]),
                 callback=packet_callback, callback_args=['tmp.file'],
                 save_dump_file=True, save_dump_filename='tcp.callback.out')
 
@@ -230,11 +230,11 @@ class TCPDumpTest(unittest.TestCase):
 
             tcpd.start_capture(
                 interface=lo_iface, count=0,
-                pcap_filter=pcap.And(
-                    [pcap.Host('localhost', proto='ip',
-                               source=True, dest=True),
-                     pcap.Port(6015, proto='tcp', source=True),
-                     pcap.Port(6055, proto='tcp', dest=True)]))
+                pcap_filter=pcap_rules.And(
+                    [pcap_rules.Host('localhost', proto='ip',
+                                     source=True, dest=True),
+                     pcap_rules.Port(6015, proto='tcp', source=True),
+                     pcap_rules.Port(6055, proto='tcp', dest=True)]))
 
             tcps.start_send(interface=lo_iface, packet_type='tcp', count=5,
                             source_ip='127.0.0.1', dest_ip='127.0.0.1',
