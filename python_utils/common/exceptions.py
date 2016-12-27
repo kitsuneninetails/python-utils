@@ -19,8 +19,9 @@ class ArgMismatchException(BaseInfoException):
 
 
 class SubprocessFailedException(BaseInfoException):
-    def __init__(self, info):
+    def __init__(self, info, passed_exception=None):
         super(SubprocessFailedException, self).__init__(info)
+        self.passed_exception=passed_exception
 
 
 class SubprocessTimeoutException(BaseInfoException):
