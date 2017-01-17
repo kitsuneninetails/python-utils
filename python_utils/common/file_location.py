@@ -1,5 +1,5 @@
 import os.path
-from zephyr.common.cli import LinuxCLI
+from python_utils.shell.cli import LinuxCLI
 
 
 class FileAccessor(object):
@@ -38,11 +38,11 @@ class SSHFileAccessor(FileAccessor):
         near_f = near_path + '/' + near_filename
 
         LinuxCLI(log_cmd=True, priv=False).cmd(
-            'scp -o StrictHostKeyChecking=no -o '
-            'UserKnownHostsFile=/dev/null ' +
-            self.remote_username + '@' +
-            self.remote_server + ':' + far_f + ' ' +
-            near_f)
+            ['scp',
+             '-o', 'StrictHostKeyChecking=no',
+             '-o', 'UserKnownHostsFile=/dev/null',
+             self.remote_username + '@' + self.remote_server + ':' + far_f,
+             near_f])
 
     def fetch_file(self, far_path, far_filename):
         self.copy_file(far_path=far_path,

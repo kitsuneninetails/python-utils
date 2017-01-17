@@ -42,7 +42,6 @@ class MPThreadTestFuncs(object):
 
 
 class MPThreadTest(unittest.TestCase):
-
     def test_thread_create(self):
         thr = mp_thread.MPThread(func_global, bar='foo')
         thr.start()
@@ -99,5 +98,16 @@ class MPThreadTest(unittest.TestCase):
         self.assertEqual('foo', midthread_result)
         final_result = thr3.join()
         self.assertEqual('fooout', final_result)
+
+        self._thread = mp_thread.MPThread(self.selfThread, bar='foo')
+        self._thread.start()
+        midthread_result = self._thread.get_data()
+        self.assertEqual('foo', midthread_result)
+        final_result = self._thread.join()
+        self.assertEqual('fooout', final_result)
+
+    def selfThread(self, bar=None):
+        self._thread.put_data('foo')
+        return bar + 'out'
 
 run_unit_test(MPThreadTest)
