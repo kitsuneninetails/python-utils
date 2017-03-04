@@ -10,7 +10,7 @@ def _curl_do_cmd(url, json_data=None, filename=None, headers={},
     c.setopt(c.URL, url)
     c.setopt(c.WRITEDATA, cbuffer)
     if json_data:
-        headers["Content-Type: "] = media_type
+        headers["Content-Type"] = media_type
         c.setopt(c.POSTFIELDS, json.dumps(json_data))
     if filename:
         c.setopt(c.HTTPPOST, [('fileupload', (c.FORM_FILE, file))])
